@@ -9,8 +9,8 @@
 #
 # Creation
 #
-# Data: 25/10/2022 as 22:00
-# Date: 25/10/2022 at 10:00 pm
+# Data: 28/02/2024 as 16:00
+# Date: 28/02/2024 at 17:00 pm
 #
 #-------------------------------------------------------
 #
@@ -24,6 +24,7 @@
 # Versions
 #
 # v1.0.0 - Project created
+# v1.2.0 - Add Keycloack support
 #
 #
 #-------------------------------------------------------
@@ -31,11 +32,11 @@
 # Para executar o script execute os seguintes comandos:
 # To run the script run one of the following commands:
 #
-# ./oracle-docker-install.sh
+# ./docker-tools-installer.sh
 #
 # or
 #
-# bash oracle-docker-install.sh
+# bash docker-tools-installer.sh
 #-------------------------------------------------------
 #
 #
@@ -326,12 +327,51 @@ EOF
     fi
 }
 
+install_keycloak() {
+    local TITLE_NAME="KeyCloak"
+    local CONTAINER_NAME="keycloack-dev"
+    local CONTAINER_USER=admin
+    local CONTAINER_KEYCLOAK_PASSWORD=admin
+    local CONTAINER_PORT=8081
+    local CONTAINER_ID
+
+    echo -e "${LOG_INFO} Instalando ${TITLE_NAME} Container ${COLOR_OFF}"
+    remove_container "$CONTAINER_NAME"
+    docker run --name "$CONTAINER_NAME" -p "$CONTAINER_PORT":8080 -e KEYCLOAK_ADMIN="$CONTAINER_USER" -e KEYCLOAK_ADMIN_PASSWORD="$CONTAINER_KEYCLOAK_PASSWORD" -d quay.io/keycloak/keycloak:23.0.7 start-dev
+    echo -e "${LOG_INFO} ${TITLE_NAME} está sendo inicializado... ${COLOR_OFF}"
+    sleep 20
+
+    CONTAINER_ID=$(docker ps -a | grep "$CONTAINER_NAME" | awk '{print $1}')
+    RUNNING="$(docker ps -a | grep "$CONTAINER_NAME" | awk '{print $7}' | tr '[:upper:]' '[:lower:]' | xargs)"
+
+    if [[ ${RUNNING} == 'up' ]]; then
+        echo -e "${LOG_SUCCESS} ${TITLE_NAME} Container ${SUCCESS_MESSAGE} ${COLOR_OFF}"
+        cat <<EOF >>"${LOG_FILE}"
+############################################################################################
+Dados de conexão para $TITLE_NAME:
+user: $CONTAINER_USER
+password: $CONTAINER_KEYCLOAK_PASSWORD
+host: localhost
+port: $CONTAINER_PORT
+console admin: http://localhost:$CONTAINER_PORT/admin
+console account admin: http://localhost:$CONTAINER_PORT/realms/\${myrealm}/account
+
+CONTAINER_ID: $CONTAINER_ID
+CONTAINER_NAME: $CONTAINER_NAME
+EOF
+        docker stop "${CONTAINER_ID}"
+    else
+        echo -e "${LOG_ERROR} ${TITLE_NAME} Container ${ERROR_MESSAGE} ${COLOR_OFF}"
+    fi
+}
+
 install_containers() {
     install_oracle
     install_postgres
     install_mysql
     install_sqlserver
     install_activemq
+    install_keycloak
 }
 
 finish() {
