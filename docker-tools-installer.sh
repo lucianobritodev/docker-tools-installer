@@ -10,7 +10,7 @@
 # Creation
 #
 # Data: 28/02/2024 as 16:00
-# Date: 28/02/2024 at 17:00 pm
+# Date: 02/28/2024 at 04:00 pm
 #
 #-------------------------------------------------------
 #
@@ -25,6 +25,7 @@
 #
 # v1.0.0 - Project created
 # v1.2.0 - Add Keycloack support
+# v1.3.0 - Add Firebird support
 #
 #
 #-------------------------------------------------------
@@ -66,13 +67,13 @@ readonly UBUNTU="ubuntu"
 readonly LINUX_MINT="linuxmint"
 
 #Logs
-readonly LOG_FILE="$HOME/docker-install.log"
+readonly LOG_FILE="$HOME/docker-tools-install.log"
 readonly LOG_INFO="[${TEXT_COLOR_PURPLE_BOLD}INFO${COLOR_OFF}] --- "
 readonly LOG_SUCCESS="[${TEXT_COLOR_GREEM_BOLD} OK ${COLOR_OFF}] --- "
 readonly LOG_ERROR="[${TEXT_COLOR_RED_BOLD}ERRO${COLOR_OFF}] --- "
 
 #Password
-readonly CONTAINER_PASSWORD="Sysdba123$"
+readonly CONTAINER_PASSWORD_DEFAULT="Sysdba123$"
 declare PASSWORD
 
 ####################### FUNCTIONS ######################
@@ -145,7 +146,7 @@ install_oracle() {
     echo -e "${LOG_INFO} Instalando ${TITLE_NAME} Container ${COLOR_OFF}"
     create_volume "${CONTAINER_VOLUME}" "${CONTAINER_NAME}"
     remove_container "$CONTAINER_NAME"
-    docker run --name ${CONTAINER_NAME} -p ${CONTAINER_PORT}:1521 -e ORACLE_PASSWORD=${CONTAINER_PASSWORD} -e BASE_USER="${USER}" -v ${CONTAINER_VOLUME}:/opt/oracle/oradata -d gvenzl/oracle-free
+    docker run --name ${CONTAINER_NAME} -p ${CONTAINER_PORT}:1521 -e ORACLE_PASSWORD=${CONTAINER_PASSWORD_DEFAULT} -e BASE_USER="${USER}" -v ${CONTAINER_VOLUME}:/opt/oracle/oradata -d gvenzl/oracle-free
     echo -e "${LOG_INFO} ${TITLE_NAME} está sendo inicializado... ${COLOR_OFF}"
     sleep 8
 
@@ -156,9 +157,10 @@ install_oracle() {
         echo -e "${LOG_SUCCESS} ${TITLE_NAME} Container ${SUCCESS_MESSAGE} ${COLOR_OFF}"
         cat <<EOF >>"${LOG_FILE}"
 ############################################################################################
+
 Dados de conexão para $TITLE_NAME:
 user admin: sys
-password: $CONTAINER_PASSWORD
+password: $CONTAINER_PASSWORD_DEFAULT
 type: Basic
 host: localhost
 port: $CONTAINER_PORT
@@ -166,6 +168,8 @@ service: FREE
 
 CONTAINER_ID: $CONTAINER_ID
 CONTAINER_NAME: $CONTAINER_NAME
+CONTAINER_VOLUME: $CONTAINER_VOLUME
+
 EOF
         docker stop "$DOCKER_IS_INSTALLED"
     else
@@ -185,7 +189,7 @@ install_postgres() {
     echo -e "${LOG_INFO} Instalando ${TITLE_NAME} Container ${COLOR_OFF}"
     create_volume "$CONTAINER_VOLUME" "$CONTAINER_NAME"
     remove_container "$CONTAINER_NAME"
-    docker run -e POSTGRES_USER="$CONTAINER_USER" -e POSTGRES_PASSWORD="$CONTAINER_PASSWORD" --name "$CONTAINER_NAME" -p "$CONTAINER_PORT":5432 -v "$CONTAINER_VOLUME":/var/lib/postgresql -d postgres
+    docker run -e POSTGRES_USER="$CONTAINER_USER" -e POSTGRES_PASSWORD="$CONTAINER_PASSWORD_DEFAULT" --name "$CONTAINER_NAME" -p "$CONTAINER_PORT":5432 -v "$CONTAINER_VOLUME":/var/lib/postgresql -d postgres
     echo -e "${LOG_INFO} ${TITLE_NAME} está sendo inicializado... ${COLOR_OFF}"
     sleep 8
 
@@ -196,15 +200,17 @@ install_postgres() {
         echo -e "${LOG_SUCCESS} ${TITLE_NAME} Container ${SUCCESS_MESSAGE} ${COLOR_OFF}"
         cat <<EOF >>"${LOG_FILE}"
 ############################################################################################
+
 Dados de conexão para $TITLE_NAME:
 user: $CONTAINER_USER
-password: $CONTAINER_PASSWORD
+password: $CONTAINER_PASSWORD_DEFAULT
 host: localhost
 port: $CONTAINER_PORT
 
 CONTAINER_ID: $CONTAINER_ID
 CONTAINER_NAME: $CONTAINER_NAME
 CONTAINER_VOLUME: $CONTAINER_VOLUME
+
 EOF
         docker stop "${CONTAINER_ID}"
     else
@@ -223,7 +229,7 @@ install_mysql() {
     echo -e "${LOG_INFO} Instalando ${TITLE_NAME} Container ${COLOR_OFF}"
     create_volume "$CONTAINER_VOLUME" "$CONTAINER_NAME"
     remove_container "$CONTAINER_NAME"
-    docker run -e MYSQL_ROOT_PASSWORD="$CONTAINER_PASSWORD" --name "$CONTAINER_NAME" -p "$CONTAINER_PORT":3306 -v "$CONTAINER_VOLUME":/var/lib/mysql -d mysql
+    docker run -e MYSQL_ROOT_PASSWORD="$CONTAINER_PASSWORD_DEFAULT" --name "$CONTAINER_NAME" -p "$CONTAINER_PORT":3306 -v "$CONTAINER_VOLUME":/var/lib/mysql -d mysql
     echo -e "${LOG_INFO} ${TITLE_NAME} está sendo inicializado... ${COLOR_OFF}"
     sleep 8
 
@@ -234,15 +240,17 @@ install_mysql() {
         echo -e "${LOG_SUCCESS} ${TITLE_NAME} ${SUCCESS_MESSAGE} ${COLOR_OFF}"
         cat <<EOF >>"${LOG_FILE}"
 ############################################################################################
+
 Dados de conexão para $TITLE_NAME:
 user: $CONTAINER_USER
-password: $CONTAINER_PASSWORD
+password: $CONTAINER_PASSWORD_DEFAULT
 host: localhost
 port: $CONTAINER_PORT
 
 CONTAINER_ID: $CONTAINER_ID
 CONTAINER_NAME: $CONTAINER_NAME
 CONTAINER_VOLUME: $CONTAINER_VOLUME
+
 EOF
         docker stop "${CONTAINER_ID}"
     else
@@ -261,7 +269,7 @@ install_sqlserver() {
     echo -e "${LOG_INFO} Instalando ${TITLE_NAME} Container ${COLOR_OFF}"
     create_volume "$CONTAINER_VOLUME" "$CONTAINER_NAME"
     remove_container "$CONTAINER_NAME"
-    docker run -e ACCEPT_EULA=Y -e MSSQL_SA_PASSWORD="$CONTAINER_PASSWORD" --name "$CONTAINER_NAME" -p "$CONTAINER_PORT":1433 -v "$CONTAINER_VOLUME":/var/lib/sqlserver -d mcr.microsoft.com/mssql/server
+    docker run -e ACCEPT_EULA=Y -e MSSQL_SA_PASSWORD="$CONTAINER_PASSWORD_DEFAULT" --name "$CONTAINER_NAME" -p "$CONTAINER_PORT":1433 -v "$CONTAINER_VOLUME":/var/lib/sqlserver -d mcr.microsoft.com/mssql/server
     echo -e "${LOG_INFO} ${TITLE_NAME} está sendo inicializado... ${COLOR_OFF}"
     sleep 8
 
@@ -272,15 +280,57 @@ install_sqlserver() {
         echo -e "${LOG_SUCCESS} ${TITLE_NAME} Container ${SUCCESS_MESSAGE} ${COLOR_OFF}"
         cat <<EOF >>"${LOG_FILE}"
 ############################################################################################
+
 Dados de conexão para $TITLE_NAME:
 user: $CONTAINER_USER
-password: $CONTAINER_PASSWORD
+password: $CONTAINER_PASSWORD_DEFAULT
 host: localhost
 port: $CONTAINER_PORT
 
 CONTAINER_ID: $CONTAINER_ID
 CONTAINER_NAME: $CONTAINER_NAME
 CONTAINER_VOLUME: $CONTAINER_VOLUME
+
+EOF
+        docker stop "${CONTAINER_ID}"
+    else
+        echo -e "${LOG_ERROR} ${TITLE_NAME} Container ${ERROR_MESSAGE} ${COLOR_OFF}"
+    fi
+}
+
+install_firebird() {
+    local TITLE_NAME="Firebird"
+    local CONTAINER_NAME="firebird-dev"
+    local CONTAINER_VOLUME=$DOCKER_BASE_VOLUMES/firebird
+    local CONTAINER_USER=sysdba
+    local CONTAINER_PORT=3050
+    local CONTAINER_ID
+
+    echo -e "${LOG_INFO} Instalando ${TITLE_NAME} Container ${COLOR_OFF}"
+    create_volume "$CONTAINER_VOLUME" "$CONTAINER_NAME"
+    remove_container "$CONTAINER_NAME"
+    docker run -e TZ="America/Sao_Paulo" -e ISC_PASSWORD="$CONTAINER_PASSWORD_DEFAULT" --name "$CONTAINER_NAME" -p "$CONTAINER_PORT":3050 -v "$CONTAINER_VOLUME":/firebird -d jacobalberty/firebird
+    echo -e "${LOG_INFO} ${TITLE_NAME} está sendo inicializado... ${COLOR_OFF}"
+    sleep 8
+
+    CONTAINER_ID=$(docker ps -a | grep ${CONTAINER_NAME} | awk '{print $1}')
+    RUNNING="$(docker ps -a | grep "$CONTAINER_NAME" | awk '{print $7}' | tr '[:upper:]' '[:lower:]' | xargs)"
+
+    if [[ ${RUNNING} == 'up' ]]; then
+        echo -e "${LOG_SUCCESS} ${TITLE_NAME} Container ${SUCCESS_MESSAGE} ${COLOR_OFF}"
+        cat <<EOF >>"${LOG_FILE}"
+############################################################################################
+
+Dados de conexão para $TITLE_NAME:
+user: $CONTAINER_USER
+password: $CONTAINER_PASSWORD_DEFAULT
+host: localhost
+port: $CONTAINER_PORT
+
+CONTAINER_ID: $CONTAINER_ID
+CONTAINER_NAME: $CONTAINER_NAME
+CONTAINER_VOLUME: $CONTAINER_VOLUME
+
 EOF
         docker stop "${CONTAINER_ID}"
     else
@@ -310,6 +360,7 @@ install_activemq() {
         echo -e "${LOG_SUCCESS} ${TITLE_NAME} Container ${SUCCESS_MESSAGE} ${COLOR_OFF}"
         cat <<EOF >>"${LOG_FILE}"
 ############################################################################################
+
 Dados de conexão para $TITLE_NAME:
 user: $CONTAINER_USER
 password: $CONTAINER_ARTEMIS_PASSWORD
@@ -320,6 +371,7 @@ rest api: http://localhost:$CONTAINER_ADMIN_CONSOLE_PORT/console/jolokia
 
 CONTAINER_ID: $CONTAINER_ID
 CONTAINER_NAME: $CONTAINER_NAME
+
 EOF
         docker stop "${CONTAINER_ID}"
     else
@@ -348,6 +400,7 @@ install_keycloak() {
         echo -e "${LOG_SUCCESS} ${TITLE_NAME} Container ${SUCCESS_MESSAGE} ${COLOR_OFF}"
         cat <<EOF >>"${LOG_FILE}"
 ############################################################################################
+
 Dados de conexão para $TITLE_NAME:
 user: $CONTAINER_USER
 password: $CONTAINER_KEYCLOAK_PASSWORD
@@ -358,6 +411,7 @@ console account admin: http://localhost:$CONTAINER_PORT/realms/\${myrealm}/accou
 
 CONTAINER_ID: $CONTAINER_ID
 CONTAINER_NAME: $CONTAINER_NAME
+
 EOF
         docker stop "${CONTAINER_ID}"
     else
@@ -366,18 +420,34 @@ EOF
 }
 
 install_containers() {
+    echo ""
+
     install_oracle
     install_postgres
     install_mysql
     install_sqlserver
+    install_firebird
     install_activemq
     install_keycloak
+
 }
 
 finish() {
     echo ""
-    echo -e "$LOG_INFO As informações de conexão com os containers criados estão disponíveis em ${LOG_FILE}"
+    echo "############################################################################################" >>"$LOG_FILE"
     cat "$LOG_FILE"
+    echo -e "$LOG_INFO As informações de conexão com os containers criados estão disponíveis em ${LOG_FILE}"
+
+}
+
+log_init() {
+
+    rm -f "$LOG_FILE"
+    touch "$LOG_FILE"
+    cat <<EOF >"$LOG_FILE"
+#############################################################################################
+##################################  DOCKER TOOLS INSTALLER ##################################
+EOF
 
 }
 
@@ -386,9 +456,7 @@ main() {
     PASSWORD="$(zenity --title="Credenciais de usuário $(lsb_release -i | sed 's/.*://g;s/[\s|\t]//g')" --password)"
     [ "$PASSWORD" = '' ] && exit 1
 
-    rm -f "$LOG_FILE"
-    touch "$LOG_FILE"
-
+    log_init
     install_docker
     install_containers
     finish
