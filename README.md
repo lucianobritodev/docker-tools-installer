@@ -5,7 +5,7 @@
 
 ## Description
 
-O docker-tools-installer.sh é uma ferramenta para facilitar a instalação e configuração do Docker e de outras ferramentas em containers no ambiente de desenvolvimento em máquinas Linux (base .deb) e MAC OS. As ferramentos instaladas são como:
+O docker-tools-installer.sh é uma ferramenta para facilitar a instalação e configuração do Docker e de outras ferramentas em containers no ambiente de desenvolvimento em máquinas Linux (base .deb) e MAC OS. As ferramentos instaladas são:
 
 * Docker, Swarm, Docker-Compose
 * Oracle Database 23c
