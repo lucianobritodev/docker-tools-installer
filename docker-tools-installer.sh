@@ -171,7 +171,7 @@ CONTAINER_NAME: $CONTAINER_NAME
 CONTAINER_VOLUME: $CONTAINER_VOLUME
 
 EOF
-        docker stop "$DOCKER_IS_INSTALLED"
+        docker stop "${CONTAINER_ID}"
     else
         echo -e "${LOG_ERROR} ${TITLE_NAME} Container ${ERROR_MESSAGE} ${COLOR_OFF}"
     fi
