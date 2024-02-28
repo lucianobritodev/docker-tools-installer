@@ -13,6 +13,7 @@ O docker-tools-installer.sh é uma ferramenta para facilitar a instalação e co
 * MySQL
 * SqlServer
 * ActiveMQ Artemis
+* Keycloak
 
 
 ## Execution
