@@ -14,6 +14,7 @@ O docker-tools-installer.sh é uma ferramenta para facilitar a instalação e co
 * SqlServer
 * ActiveMQ Artemis
 * Keycloak
+* Firebird
 
 
 ## Execution
