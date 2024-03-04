@@ -71,6 +71,7 @@ readonly LOG_FILE="$HOME/docker-tools-install.log"
 readonly LOG_INFO="[${TEXT_COLOR_PURPLE_BOLD}INFO${COLOR_OFF}] --- "
 readonly LOG_SUCCESS="[${TEXT_COLOR_GREEM_BOLD} OK ${COLOR_OFF}] --- "
 readonly LOG_ERROR="[${TEXT_COLOR_RED_BOLD}ERRO${COLOR_OFF}] --- "
+readonly LOG_DIVISOR="#############################################################################################"
 
 #Password
 readonly CONTAINER_PASSWORD_DEFAULT="Sysdba123$"
@@ -156,7 +157,7 @@ install_oracle() {
     if [[ ${RUNNING} == 'up' ]]; then
         echo -e "${LOG_SUCCESS} ${TITLE_NAME} Container ${SUCCESS_MESSAGE} ${COLOR_OFF}"
         cat <<EOF >>"${LOG_FILE}"
-############################################################################################
+$LOG_DIVISOR
 
 Dados de conexão para $TITLE_NAME:
 user admin: sys
@@ -199,7 +200,7 @@ install_postgres() {
     if [[ ${RUNNING} == 'up' ]]; then
         echo -e "${LOG_SUCCESS} ${TITLE_NAME} Container ${SUCCESS_MESSAGE} ${COLOR_OFF}"
         cat <<EOF >>"${LOG_FILE}"
-############################################################################################
+$LOG_DIVISOR
 
 Dados de conexão para $TITLE_NAME:
 user: $CONTAINER_USER
@@ -239,7 +240,7 @@ install_mysql() {
     if [[ ${RUNNING} == 'up' ]]; then
         echo -e "${LOG_SUCCESS} ${TITLE_NAME} ${SUCCESS_MESSAGE} ${COLOR_OFF}"
         cat <<EOF >>"${LOG_FILE}"
-############################################################################################
+$LOG_DIVISOR
 
 Dados de conexão para $TITLE_NAME:
 user: $CONTAINER_USER
@@ -279,7 +280,7 @@ install_sqlserver() {
     if [[ ${RUNNING} == 'up' ]]; then
         echo -e "${LOG_SUCCESS} ${TITLE_NAME} Container ${SUCCESS_MESSAGE} ${COLOR_OFF}"
         cat <<EOF >>"${LOG_FILE}"
-############################################################################################
+$LOG_DIVISOR
 
 Dados de conexão para $TITLE_NAME:
 user: $CONTAINER_USER
@@ -319,7 +320,7 @@ install_firebird() {
     if [[ ${RUNNING} == 'up' ]]; then
         echo -e "${LOG_SUCCESS} ${TITLE_NAME} Container ${SUCCESS_MESSAGE} ${COLOR_OFF}"
         cat <<EOF >>"${LOG_FILE}"
-############################################################################################
+$LOG_DIVISOR
 
 Dados de conexão para $TITLE_NAME:
 user: $CONTAINER_USER
@@ -359,7 +360,7 @@ install_activemq() {
     if [[ ${RUNNING} == 'up' ]]; then
         echo -e "${LOG_SUCCESS} ${TITLE_NAME} Container ${SUCCESS_MESSAGE} ${COLOR_OFF}"
         cat <<EOF >>"${LOG_FILE}"
-############################################################################################
+$LOG_DIVISOR
 
 Dados de conexão para $TITLE_NAME:
 user: $CONTAINER_USER
@@ -368,6 +369,46 @@ host: localhost
 port: $CONTAINER_PORT
 console admin: http://localhost:$CONTAINER_ADMIN_CONSOLE_PORT/console
 rest api: http://localhost:$CONTAINER_ADMIN_CONSOLE_PORT/console/jolokia
+
+CONTAINER_ID: $CONTAINER_ID
+CONTAINER_NAME: $CONTAINER_NAME
+
+EOF
+        docker stop "${CONTAINER_ID}"
+    else
+        echo -e "${LOG_ERROR} ${TITLE_NAME} Container ${ERROR_MESSAGE} ${COLOR_OFF}"
+    fi
+}
+
+install_rabbitmq() {
+    local TITLE_NAME="RabbitMQ"
+    local CONTAINER_NAME="rabbitmq-dev"
+    local CONTAINER_USER=guest
+    local CONTAINER_RABBIT_PASSWORD=guest
+    local CONTAINER_PORT=5672
+    local CONTAINER_ADMIN_CONSOLE_PORT=15672
+    local CONTAINER_ID
+
+    echo -e "${LOG_INFO} Instalando ${TITLE_NAME} Container ${COLOR_OFF}"
+    remove_container "$CONTAINER_NAME"
+    docker run -e RABBITMQ_DEFAULT_USER="$CONTAINER_USER" -e RABBITMQ_DEFAULT_PASS="$CONTAINER_RABBIT_PASSWORD" --name "$CONTAINER_NAME" -p "$CONTAINER_PORT":5672 -p "$CONTAINER_ADMIN_CONSOLE_PORT":15672 -d rabbitmq:3-management
+    echo -e "${LOG_INFO} ${TITLE_NAME} está sendo inicializado... ${COLOR_OFF}"
+    sleep 20
+
+    CONTAINER_ID=$(docker ps -a | grep "$CONTAINER_NAME" | awk '{print $1}')
+    RUNNING="$(docker ps -a | grep "$CONTAINER_NAME" | awk '{print $7}' | tr '[:upper:]' '[:lower:]' | xargs)"
+
+    if [[ ${RUNNING} == 'up' ]]; then
+        echo -e "${LOG_SUCCESS} ${TITLE_NAME} Container ${SUCCESS_MESSAGE} ${COLOR_OFF}"
+        cat <<EOF >>"${LOG_FILE}"
+$LOG_DIVISOR
+
+Dados de conexão para $TITLE_NAME:
+user: $CONTAINER_USER
+password: $CONTAINER_ARTEMIS_PASSWORD
+host: localhost
+port: $CONTAINER_PORT
+console admin: http://localhost:$CONTAINER_ADMIN_CONSOLE_PORT
 
 CONTAINER_ID: $CONTAINER_ID
 CONTAINER_NAME: $CONTAINER_NAME
@@ -399,7 +440,7 @@ install_keycloak() {
     if [[ ${RUNNING} == 'up' ]]; then
         echo -e "${LOG_SUCCESS} ${TITLE_NAME} Container ${SUCCESS_MESSAGE} ${COLOR_OFF}"
         cat <<EOF >>"${LOG_FILE}"
-############################################################################################
+$LOG_DIVISOR
 
 Dados de conexão para $TITLE_NAME:
 user: $CONTAINER_USER
@@ -428,15 +469,19 @@ install_containers() {
     install_sqlserver
     install_firebird
     install_activemq
+    install_rabbitmq
     install_keycloak
 
 }
 
 finish() {
+
     echo ""
-    echo "############################################################################################" >>"$LOG_FILE"
+    echo "$LOG_DIVISOR" >>"$LOG_FILE"
     cat "$LOG_FILE"
+    echo ""
     echo -e "$LOG_INFO As informações de conexão com os containers criados estão disponíveis em ${LOG_FILE}"
+    echo ""
 
 }
 
@@ -445,7 +490,7 @@ log_init() {
     rm -f "$LOG_FILE"
     touch "$LOG_FILE"
     cat <<EOF >"$LOG_FILE"
-#############################################################################################
+$LOG_DIVISOR
 ##################################  DOCKER TOOLS INSTALLER ##################################
 EOF
 
