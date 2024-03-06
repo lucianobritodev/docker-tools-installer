@@ -405,7 +405,7 @@ $LOG_DIVISOR
 
 Dados de conexão para $TITLE_NAME:
 user: $CONTAINER_USER
-password: $CONTAINER_ARTEMIS_PASSWORD
+password: $CONTAINER_RABBIT_PASSWORD
 host: localhost
 port: $CONTAINER_PORT
 console admin: http://localhost:$CONTAINER_ADMIN_CONSOLE_PORT
@@ -474,6 +474,47 @@ install_containers() {
 
 }
 
+verify_success() {
+
+    local RUNNING="$1"
+    local CONTAINER_ID="$2"
+    local CONTAINER_NAME="$3"
+    local CONTAINER_VOLUME="$4"
+    local TITLE_NAME="$5"
+    local CONTAINER_USER="$6"
+    local CONTAINER_PASSWORD="$7"
+    local CONTAINER_HOST="$8"
+    local CONTAINER_PORT="$9"
+    local HOST_MANAGER
+
+    if [[ "${10}" != '' ]]; then
+        HOST_MANAGER="http://$CONTAINER_HOST:$CONTAINER_ADMIN_CONSOLE_PORT" 
+    fi
+    
+
+    if [[ ${RUNNING} == 'up' ]]; then
+        echo -e "${LOG_SUCCESS} ${TITLE_NAME} Container ${SUCCESS_MESSAGE} ${COLOR_OFF}"
+        cat <<EOF >>"${LOG_FILE}"
+$LOG_DIVISOR
+
+Dados de conexão para $TITLE_NAME:
+container id: $CONTAINER_ID
+container name: $CONTAINER_NAME
+container volume: $CONTAINER_VOLUME
+user: $CONTAINER_USER
+password: $CONTAINER_PASSWORD
+host service: $CONTAINER_HOST 
+port service: $CONTAINER_PORT
+console admin: $HOST_MANAGER
+
+EOF
+        docker stop "${CONTAINER_ID}"
+    else
+        echo -e "${LOG_ERROR} ${TITLE_NAME} Container ${ERROR_MESSAGE} ${COLOR_OFF}"
+    fi
+
+}
+
 finish() {
 
     echo ""
@@ -498,15 +539,22 @@ EOF
 
 main() {
 
-    PASSWORD="$(zenity --title="Credenciais de usuário $(lsb_release -i | sed 's/.*://g;s/[\s|\t]//g')" --password)"
-    [ "$PASSWORD" = '' ] && exit 1
+    echo "$1"
+
+    if [[ "$1" == '' ]]; then
+        PASSWORD="$(zenity --title="Credenciais de usuário $(lsb_release -i | sed 's/.*://g;s/[\s|\t]//g')" --password)"
+        [ "$PASSWORD" = '' ] && exit 1
+    else
+        PASSWORD="$1"
+    fi
 
     log_init
     install_docker
     install_containers
     finish
+    
 }
 
 ######################## EXECUTION #####################
 
-main
+main "$1"
